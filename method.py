@@ -58,15 +58,15 @@ class Method:
         if matches:
             self.comment = extract_comment(matches.group())
             self.result = extract_return(matches.group())
-            self.__comment_params = extract_params(matches.group())
+            self.__comment_params.update(extract_params(matches.group()))
 
     def __extract_params_from_signature(self, method_code: string):
-        matches = re.findall(r'[\w\d]+\s?:\s?[\w\d]+(<[\w\d, ?*]+>)*', method_code)
+        matches = re.findall(r'([\w\d]+\s?:\s?[\w\d?]+(<[\w\d<> ,*?]+>)?)', method_code)
         for strParam in matches:
-            name = strParam.split(":")[0].strip().split()[-1]
+            name = strParam[0].split(":")[0].strip().split()[-1]
             param = Param(name)
-            param.type = strParam.split(":")[-1].strip()
-            if name in self.comment:
+            param.type = strParam[0].split(":")[-1].strip()
+            if name in self.__comment_params.keys():
                 param.comment = self.__comment_params[name]
             self.params.append(param)
 
@@ -76,7 +76,8 @@ class Method:
             res_str += f'{param.name}: {param.type}'
             if param.comment:
                 res_str += f' - {param.comment}'
-            res_str += ';\n'
+            else:
+                res_str += '\n\n'
         if res_str:
             return res_str
         return "-"

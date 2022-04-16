@@ -21,6 +21,7 @@ def create_table_header(doc: Document, header: string):
 def create_table(doc: Document, headers: []):
     table = doc.add_table(1, len(headers))
     table.style = 'Table Grid'
+    table.autofit = True
     head_cells = table.rows[0].cells
     for i, item in enumerate(headers):
         p = head_cells[i].paragraphs[0]
