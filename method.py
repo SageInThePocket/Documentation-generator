@@ -27,12 +27,15 @@ class Method:
         self.__extract_comment(method_code)
 
     def __extract_name(self, method_code: string):
-        regex = rf'{method_words_regex} [\w\d]+'
-        matches = re.search(regex, method_code)
-        if matches:
-            self.name = matches.group().split(' ')[-1]
+        if "`" in method_code:
+            self.name = "test_method"
         else:
-            raise Exception("Incorrect file. Cannot extract method name")
+            regex = rf'{method_words_regex} [\w\d]+'
+            matches = re.search(regex, method_code)
+            if matches:
+                self.name = matches.group().split(' ')[-1]
+            else:
+                raise Exception("Incorrect file. Cannot extract method name")
 
     def __extract_access_modifier(self, method_code: string):
         match = re.search(method_regex, method_code)
@@ -48,7 +51,7 @@ class Method:
         if matches:
             self.type = matches.group().split(':')[-1].strip()
         else:
-            self.type = implicit_type_warning
+            self.type = explicit_type_warning
 
     def __extract_comment(self, method_code: string):
         matches = re.search(comment_regex, method_code, re.MULTILINE)
@@ -58,12 +61,12 @@ class Method:
             self.__comment_params = extract_params(matches.group())
 
     def __extract_params_from_signature(self, method_code: string):
-        matches = re.findall(r'[\w\d]+\s?:\s?[\w\d<, >?*]+', method_code)
+        matches = re.findall(r'[\w\d]+\s?:\s?[\w\d]+(<[\w\d, ?*]+>)*', method_code)
         for strParam in matches:
             name = strParam.split(":")[0].strip().split()[-1]
             param = Param(name)
             param.type = strParam.split(":")[-1].strip()
-            if self.comment.__contains__(name):
+            if name in self.comment:
                 param.comment = self.__comment_params[name]
             self.params.append(param)
 
@@ -84,7 +87,7 @@ class Method:
             res_str += f'\n{self.result}'
         return res_str
 
-    def method_to_row(self, table: Table):
+    def to_row(self, table: Table):
         cells = table.add_row().cells
         cells[0].text = self.name
         cells[1].text = self.access_modifier

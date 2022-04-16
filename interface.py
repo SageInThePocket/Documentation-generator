@@ -1,26 +1,13 @@
 from regex import *
 from extractor import *
-from setup import interface_word
+from setup import *
 from docx.table import Table
 from docx import Document
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.shared import Pt
 
-def _create_table(doc: Document, headers: [], name: string):
-    p = doc.add_paragraph(name)
-    p.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
-    p.runs[0].font.name = 'Times New Roman'
-    p.runs[0].font.size = Pt(12)
-    table = doc.add_table(1, len(headers))
-    table.style = 'Table Grid'
-    table.autofit = True
-    head_cells = table.rows[0].cells
-    for i, item in enumerate(headers):
-        p = head_cells[i].paragraphs[0]
-        p.add_run(item).bold = True
-        p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-        p.runs[0].font.name = 'Times New Roman'
-    return table
+from table_worker import create_table, create_table_for_class_members
+
 
 class Interface:
 
@@ -31,6 +18,8 @@ class Interface:
         self.methods = []
         self.properties = []
         self.__extract_interface_info(interface_code)
+        self.methods.sort(key=lambda meth: meth.name)
+        self.properties.sort(key=lambda pr: pr.name)
 
     def __extract_interface_info(self, code: string):
         self.__extract_interface_name(code)
@@ -50,33 +39,32 @@ class Interface:
             self.comment = extract_comment(matches.group())
             self.params = extract_params(matches.group())
 
-    def interface_to_row(self, table: Table):
+    def to_row(self, table: Table):
         cells = table.add_row().cells
         cells[0].text = self.name
         cells[1].text = self.comment
+        cells[0].width = Pt(100)
+        cells[1].width = Pt(100)
         for i in range(2):
             cells[i].paragraphs[0].runs[0].font.name = 'Times New Roman'
             cells[i].paragraphs[0].runs[0].font.size = Pt(12)
 
-    def interface_to_table(self, doc: Document()):
+    def interface_to_table(self, doc: Document, number: int):
         if len(self.methods) > 0 or len(self.properties) > 0:
-            doc.add_paragraph()
-            p = doc.add_paragraph(f'Описание свойств и методов интерфейса {self.name}.kt')
-            p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-            p.runs[0].font.name = 'Times New Roman'
-
             if len(self.methods) > 0:
-                headers = ['Имя', 'Модификатор доступа', "Тип", "Параметры", "Назначение"]
-                table = _create_table(doc, headers, "Методы")
-                self.methods.sort(key=lambda meth: meth.name)
-                for m in self.methods:
-                    m.method_to_row(table)
+                headers = ['Имя', 'Модификатор', "Тип", "Параметры", "Назначение"]
+                table_name = f'Таблица 2.{number}. Описание методов интерфейса {self.name}'
+                create_table_for_class_members(doc, table_name, headers, self.methods)
 
+            num = number
             if len(self.properties) > 0:
                 if len(self.methods) > 0:
                     doc.add_paragraph()
-                headers = ['Имя', 'Модификатор доступа', "Тип", "Назначение"]
-                table = _create_table(doc, headers, "Свойства")
-                self.properties.sort(key=lambda pr: pr.name)
-                for proper in self.properties:
-                    proper.property_to_row(table)
+                    num += 1
+                headers = ['Имя', 'Модификатор', "Тип", "Назначение"]
+                table_name = f'Таблица 2.{num}. Описание свойств интерфейса {self.name}'
+                create_table_for_class_members(doc, table_name, headers, self.properties)
+
+            return num
+        else:
+            return number

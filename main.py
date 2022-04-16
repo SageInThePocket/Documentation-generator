@@ -1,6 +1,6 @@
 from converter import Converter
 
-dir_path = "/Users/rnazmutdinov/Meetme/MeetMe-backend/src/main/kotlin/com/meetme"
+dir_path = "/Users/rnazmutdinov/Meetme/MeetMe-backend/src"
 
 converter = Converter(dir_path)
 converter.crete_class_table()

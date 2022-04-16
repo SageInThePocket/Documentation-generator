@@ -3,7 +3,7 @@ import string
 from regex import *
 from extractor import *
 from setup import *
-from setup import implicit_type_warning
+from setup import explicit_type_warning
 from docx.table import Table
 from docx.shared import Pt
 
@@ -49,7 +49,7 @@ class Property:
         if m:
             self.type = m.group().split(':')[-1].strip()
         else:
-            self.type = implicit_type_warning
+            self.type = explicit_type_warning
 
     def __get_comment(self):
         res_str = self.comment
@@ -57,7 +57,7 @@ class Property:
             res_str += f'\n{self.result}'
         return res_str
 
-    def property_to_row(self, table: Table):
+    def to_row(self, table: Table):
         cells = table.add_row().cells
         cells[0].text = self.name
         cells[1].text = self.access_modifier

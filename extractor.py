@@ -3,9 +3,9 @@ import string
 
 
 def extract_comment(comment: string):
-    matches = re.search(r'\*(\s?[^\n@/]*\n)*', comment, re.MULTILINE)
+    matches = re.search(r'\*(\s?[^\n@]*\n)*', comment, re.MULTILINE)
     word_list = list(filter(None, re.split(r'[*\s]', matches.group())))
-    return " ".join(word_list)
+    return " ".join(word_list).strip('/').strip()
 
 
 def extract_params(comment: string):

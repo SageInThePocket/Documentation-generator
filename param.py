@@ -2,7 +2,7 @@ import re
 import string
 from regex import *
 from extractor import *
-from setup import implicit_type_warning
+from setup import explicit_type_warning
 
 
 class Param:

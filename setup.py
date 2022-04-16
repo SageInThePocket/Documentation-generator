@@ -15,6 +15,7 @@ additional_start_words_for_class = [
     "data",
     "open",
     "abstract",
+    "enum",
 ]
 property_words = [
     "val",
@@ -26,4 +27,6 @@ method_words = [
 ]
 
 
-implicit_type_warning = "[IMPLICIT TYPE]"
+explicit_type_warning = "[EXPLICIT TYPE]"
+
+file_extension = ".kt"

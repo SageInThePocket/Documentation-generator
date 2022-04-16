@@ -2,15 +2,14 @@ import re
 from pathlib import Path
 import string
 
-import clazz
+import setup
 from regex import *
 from clazz import Class
 from interface import Interface
 from method import Method
 from property import Property
 from docx import Document
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
-from docx.shared import Pt
+from table_worker import create_table_for_class_members
 
 
 class Converter:
@@ -21,13 +20,17 @@ class Converter:
         self.interfaces = []
         self.__read_files(self.path)
         self.doc = Document()
+        self.interfaces.sort(key=lambda elm: elm.name)
+        self.classes.sort(key=lambda elm: elm.name)
+
 
     def __read_files(self, path: Path):
         if path.is_dir():
             for subdir in path.iterdir():
                 self.__read_files(subdir)
         else:
-            self.__read_file(path)
+            if path.name.endswith(setup.file_extension):
+                self.__read_file(path)
 
     def __read_file(self, path: Path):
         if not path.is_file():
@@ -71,44 +74,29 @@ class Converter:
             self.interfaces.append(inter)
 
     def crete_class_table(self):
-        table = self.doc.add_table(1, 2)
-        table.autofit = True
-        table.style = 'Table Grid'
-        head_cells = table.rows[0].cells
-        for i, item in enumerate(['Класс', 'Назначение']):
-            p = head_cells[i].paragraphs[0]
-            p.add_run(item).bold = True
-            p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-            p.runs[0].font.name = 'Times New Roman'
-            p.runs[0].font.size = Pt(12)
-        self.classes.sort(key=lambda elm: elm.name)
-        for c in self.classes:
-            c.class_to_row(table)
+        headers = ['Интерфейс', 'Назначение']
+        table_name = 'Таблица 1.1. Классы'
+        create_table_for_class_members(self.doc, table_name, headers, self.classes)
 
     def crete_class_members_tables(self):
         self.classes.sort(key=lambda elm: elm.name)
+        number = 1
         for c in self.classes:
-            c.class_to_table(self.doc)
+            self.doc.add_paragraph()
+            number = c.class_to_table(self.doc, number) + 1
 
     def crete_interface_table(self):
-        table = self.doc.add_table(1, 2)
-        table.autofit = True
-        table.style = 'Table Grid'
-        head_cells = table.rows[0].cells
-        for i, item in enumerate(['Интерфейс', 'Назначение']):
-            p = head_cells[i].paragraphs[0]
-            p.add_run(item).bold = True
-            p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-            p.runs[0].font.name = 'Times New Roman'
-            p.runs[0].font.size = Pt(12)
-        self.interfaces.sort(key=lambda elm: elm.name)
-        for c in self.interfaces:
-            c.interface_to_row(table)
+        p = self.doc.add_paragraph()
+        headers = ['Интерфейс', 'Назначение']
+        table_name = 'Таблица 1.2. Интерфейсы'
+        create_table_for_class_members(self.doc, table_name, headers, self.interfaces)
 
     def crete_interface_members_tables(self):
         self.interfaces.sort(key=lambda elm: elm.name)
+        number = 1
         for c in self.interfaces:
-            c.interface_to_table(self.doc)
+            self.doc.add_paragraph()
+            number = c.interface_to_table(self.doc, number) + 1
 
     def save_table(self, path: string):
         self.doc.save(path)
